@@ -10,8 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CheckCircle, Copy, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 export default function AddApiPage() {
+  const router = useRouter()
   const [currentStep, setCurrentStep] = useState(1)
   const [isVerifying, setIsVerifying] = useState(false)
   const [isVerified, setIsVerified] = useState(false)
@@ -25,6 +27,8 @@ export default function AddApiPage() {
     documentation: "",
     tags: "",
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   const generateAccessCode = () => {
     const code = `aipi_${Math.random().toString(36).substring(2, 15)}_${Date.now().toString(36)}`
@@ -40,9 +44,28 @@ export default function AddApiPage() {
     }, 2000)
   }
 
-  const handleSubmit = () => {
-    // Handle API submission
-    alert("API submitted successfully!")
+  const handleSubmit = async () => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/add-listing", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSubmitError(data.error || "Failed to upload to Pinata");
+      }else{
+        router.push("/marketplace"); 
+      }
+    } catch (err: any) {
+      setSubmitError(err.message || "Unknown error");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   const steps = [
@@ -417,8 +440,16 @@ app.post('/verify', (req, res) => {
                   <Button
                     onClick={handleSubmit}
                     className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold"
+                    disabled={isSubmitting}
                   >
-                    Add API to Marketplace
+                    {isSubmitting ? (
+                      <span className="flex items-center"><Loader2 className="animate-spin mr-2 h-5 w-5" />Submitting...</span>
+                    ) : (
+                      "Add API to Marketplace"
+                    )}
+                    {submitError && (
+                      <span className="text-red-500">{submitError}</span>
+                    )}
                   </Button>
                 )}
               </div>
@@ -427,5 +458,5 @@ app.post('/verify', (req, res) => {
         </div>
       </div>
     </div>
-  )
+  );
 }
