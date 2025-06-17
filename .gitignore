@@ -1,1 +1,6 @@
 .DS_Store
+*node_modules
+/test-api
+*bun.lock
+*.env
+*package-lock.json
