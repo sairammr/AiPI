@@ -147,7 +147,7 @@ function ApiCard({ api }: { api: any }) {
       </div>
 
       <div className="flex items-center justify-between">
-        <Link href={api.documentation ? api.documentation : "#"} target="_blank" rel="noopener noreferrer">
+        <Link href={`/api/${api.cid}`}>
           <Button className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold">
             View Details
           </Button>

@@ -1,3 +1,4 @@
+"use client"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -5,20 +6,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Star, Globe, DollarSign, Activity, Copy, ExternalLink } from "lucide-react"
 
-// Mock API data
+import { useEffect, useState } from "react"
+
 const mockApi = {
-  id: 1,
-  name: "GPT Text Analyzer",
-  description:
-    "Advanced text analysis and sentiment detection using GPT models. This API provides comprehensive text analysis capabilities including sentiment analysis, emotion detection, key phrase extraction, and content classification.",
-  category: "NLP",
-  costPerRequest: 0.002,
   rating: 4.8,
   requests: 125000,
   isOnline: true,
-  tags: ["text-analysis", "sentiment", "gpt"],
-  endpoint: "https://api.gpt-analyzer.com/v1/analyze",
-  documentation: "https://docs.gpt-analyzer.com",
   provider: "AI Solutions Inc.",
   version: "1.2.0",
   responseTime: "150ms",
@@ -33,7 +26,34 @@ const mockApi = {
   ],
 }
 
-export default function ApiDetailPage({ params }: { params: { id: string } }) {
+
+import { use as usePromise } from "react"
+
+export default function ApiDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: cid } = usePromise(params)
+  const [api, setApi] = useState<any>(mockApi)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function fetchApi() {
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(`https://gateway.pinata.cloud/ipfs/${cid}`)
+        if (!res.ok) throw new Error("Could not fetch from IPFS")
+        const data = await res.json()
+        setApi({ ...mockApi, ...data })
+      } catch (err: any) {
+        setError(err.message || "Unknown error")
+        setApi(mockApi)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchApi()
+  }, [cid])
+
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
@@ -73,26 +93,32 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center space-x-3 mb-2">
-                <h1 className="text-4xl md:text-6xl font-black">{mockApi.name}</h1>
-                <div className={`w-4 h-4 ${mockApi.isOnline ? "bg-green-500" : "bg-red-500"}`}></div>
+                <h1 className="text-4xl md:text-6xl font-black">{api.name}</h1>
+                <div className={`w-4 h-4 ${api.isOnline ? "bg-green-500" : "bg-red-500"}`}></div>
               </div>
-              <p className="text-xl font-semibold text-gray-600 mb-4">{mockApi.description}</p>
+              <p className="text-xl font-semibold text-gray-600 mb-4">{api.description}</p>
               <div className="flex items-center space-x-4">
                 <Badge className="bg-gray-100 text-black border-2 border-black font-bold text-lg px-3 py-1">
-                  {mockApi.category}
+                  {api.category}
                 </Badge>
                 <div className="flex items-center space-x-1">
                   <Star className="h-5 w-5 fill-black text-black" />
-                  <span className="font-bold text-lg">{mockApi.rating}</span>
+                  <span className="font-bold text-lg">{api.rating}</span>
                 </div>
-                <span className="font-bold text-lg">{mockApi.requests.toLocaleString()} requests</span>
+                <span className="font-bold text-lg">{api.requests.toLocaleString()} requests</span>
               </div>
             </div>
           </div>
 
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {mockApi.tags.map((tag) => (
+            {(
+              typeof api.tags === "string"
+                ? api.tags.split(",").map((t: string) => t.trim()).filter(Boolean)
+                : Array.isArray(api.tags)
+                  ? api.tags
+                  : []
+            ).map((tag: string) => (
               <Badge key={tag} variant="outline" className="border-2 border-black font-semibold">
                 {tag}
               </Badge>
@@ -173,7 +199,7 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                       <div>
                         <h3 className="font-black text-lg mb-2">Endpoint</h3>
                         <div className="bg-gray-50 border-2 border-black p-4 font-mono font-semibold flex items-center justify-between">
-                          <span>{mockApi.endpoint}</span>
+                          <span>{api.endpoint}</span>
                           <Button
                             size="sm"
                             className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold"
@@ -186,7 +212,7 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                       <div>
                         <h3 className="font-black text-lg mb-2">Example Request</h3>
                         <div className="bg-gray-50 border-2 border-black p-4 font-mono text-sm">
-                          <pre>{`curl -X POST "${mockApi.endpoint}" \\
+                          <pre>{`curl -X POST "${api.endpoint}" \\
   -H "Authorization: Bearer YOUR_API_KEY" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -211,12 +237,14 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                         </div>
                       </div>
 
-                      <Link href={mockApi.documentation} target="_blank">
-                        <Button className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold">
-                          Full Documentation
-                          <ExternalLink className="ml-2 h-4 w-4" />
-                        </Button>
-                      </Link>
+                      {api.documentation ? (
+                        <Link href={api.documentation as string} target="_blank">
+                          <Button className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold">
+                            Full Documentation
+                            <ExternalLink className="ml-2 h-4 w-4" />
+                          </Button>
+                        </Link>
+                      ) : null}
                     </div>
                   </CardContent>
                 </Card>
@@ -229,22 +257,14 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                   </CardHeader>
                   <CardContent>
                     <div className="text-center mb-6">
-                      <div className="text-4xl font-black mb-2">${mockApi.costPerRequest}</div>
+                      <div className="text-4xl font-black mb-2">${api.costPerRequest}</div>
                       <div className="text-lg font-semibold text-gray-600">per request</div>
                     </div>
 
                     <div className="space-y-4">
                       <div className="flex justify-between items-center py-2 border-b-2 border-gray-200">
-                        <span className="font-semibold">1-1,000 requests</span>
-                        <span className="font-bold">${mockApi.costPerRequest}/req</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b-2 border-gray-200">
-                        <span className="font-semibold">1,001-10,000 requests</span>
-                        <span className="font-bold">$0.0015/req</span>
-                      </div>
-                      <div className="flex justify-between items-center py-2 border-b-2 border-gray-200">
-                        <span className="font-semibold">10,001+ requests</span>
-                        <span className="font-bold">$0.001/req</span>
+                        <span className="font-semibold">1- infinite requests</span>
+                        <span className="font-bold">${api.costPerRequest}/req</span>
                       </div>
                     </div>
 
@@ -273,7 +293,7 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                 <div>
                   <label className="font-bold text-sm mb-2 block">API Endpoint</label>
                   <div className="bg-gray-50 border-2 border-black p-3 font-mono text-sm flex items-center justify-between">
-                    <span className="truncate">{mockApi.endpoint}</span>
+                    <span className="truncate">{api.endpoint}</span>
                     <Button
                       size="sm"
                       className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold ml-2"
@@ -283,19 +303,17 @@ export default function ApiDetailPage({ params }: { params: { id: string } }) {
                   </div>
                 </div>
 
-                <Button className="w-full bg-black text-white border-4 border-black hover:bg-white hover:text-black font-bold text-lg py-6 shadow-[4px_4px_0px_0px_#000] hover:shadow-[2px_2px_0px_0px_#000] hover:translate-x-1 hover:translate-y-1 transition-all">
-                  Get API Key
-                </Button>
-
-                <Link href={mockApi.documentation} target="_blank">
-                  <Button
-                    variant="outline"
-                    className="w-full border-2 border-black font-bold hover:bg-black hover:text-white"
-                  >
+                {api.documentation ? (
+                  <Link href={api.documentation as string} target="_blank">
+                    <Button
+                      variant="outline"
+                      className="w-full border-2 mt-4 border-black font-bold hover:bg-black hover:text-white"
+                    >
                     View Documentation
                     <ExternalLink className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>
+                ) : null}
               </CardContent>
             </Card>
 
