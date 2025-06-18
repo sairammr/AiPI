@@ -9,12 +9,12 @@ app.use(express.json());
 
 import fs from 'fs';
 import path from 'path';
-
-import { getJsonFromIpfs } from './lib/ipfs';
+import { getJsonFromIpfs } from './lib/ipfs.js';
+import { getCidAndApiKey } from './lib/keygen.js';
 
 const CIDS_FILE = path.join(process.cwd(), 'cids.json');
 
-app.post('/store-listing', (req, res) => {
+app.post('/store-listing', async (req, res) => {
   const { cid } = req.body;
   if (!cid) {
     return res.status(400).json({ error: 'CID is required' });
@@ -27,7 +27,13 @@ app.post('/store-listing', (req, res) => {
       cids = [];
     }
   }
-  cids.push({ cid, timestamp: Date.now() });
+  let apiKey;
+  try {
+    ({ apiKey } = await getCidAndApiKey(cid));
+  } catch (err) {
+    return res.status(500).json({ error: 'Failed to generate API key' });
+  }
+  cids.push({ cid, apiKey, timestamp: Date.now() });
   fs.writeFileSync(CIDS_FILE, JSON.stringify(cids, null, 2));
   res.json({ success: true });
 });
@@ -46,10 +52,11 @@ app.get('/listings', async (req, res) => {
   for (const entry of cids) {
     if (!seen.has(entry.cid)) {
       seen.add(entry.cid);
-      unique.push(entry);
+      const { apiKey, ...safeEntry } = entry;
+      unique.push(safeEntry);
     }
   }
-  res.json({ listings: unique });
+  res.json({ listings: unique , apiKey});
 });
 
 app.get("/test-api", async (req, res) => {
@@ -102,19 +109,31 @@ app.get("/api/:id", async (req, res) => {
     }
   );
 
+  let apiKey;
+  try {
+    if (fs.existsSync(CIDS_FILE)) {
+      const cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
+      const found = cids.find(entry => entry.cid === cid);
+      if (found && found.apiKey) {
+        apiKey = found.apiKey;
+      }
+    }
+  } catch (err) {
+  }
+
   dynamicMiddleware(req, res, async () => {
+    const headers = { "Content-Type": "application/json" };
+    if (apiKey) headers["x-api-key"] = apiKey;
     if (dataParam) {
       fetch(api.endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers,
         body: JSON.stringify(JSON.parse(dataParam)),
       }).then(response => {
         res.send(response);
       })
     } else {
-      fetch(api.endpoint).then(response => {
+      fetch(api.endpoint, { headers: apiKey ? { "x-api-key": apiKey } : undefined }).then(response => {
         res.send(response);
       })
     }
@@ -131,7 +150,19 @@ app.get("/api/:id/health", async (req, res) => {
   if (!api) {
     return res.status(404).json({ error: "Cannot find API" });
   }
-  fetch(api.endpoint+'/health').then(response => {
+  let apiKey;
+  try {
+    if (fs.existsSync(CIDS_FILE)) {
+      const cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
+      const found = cids.find(entry => entry.cid === cid);
+      if (found && found.apiKey) {
+        apiKey = found.apiKey;
+      }
+    }
+  } catch (err) {
+  }
+  const headers = apiKey ? { "x-api-key": apiKey } : undefined;
+  fetch(api.endpoint + '/health', { headers }).then(response => {
     if (response.ok) {
       res.send({
         report: {
