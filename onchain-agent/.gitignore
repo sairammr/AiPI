@@ -1,0 +1,41 @@
+# Node modules
+node_modules/
+
+# Build output
+.next/
+dist/
+build/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Environment variables
+.env
+.env.*
+
+# OS files
+.DS_Store
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+
+# Bun
+bun.lock
+
+# Misc
+*.local
+*.cache
+
+# Test coverage
+coverage/
+
+# Output from various tools
+*.log
+
+# Ignore wallet data
+wallet_data.txt 
