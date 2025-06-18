@@ -27,8 +27,27 @@ app.post('/store-listing', (req, res) => {
   }
   cids.push({ cid, timestamp: Date.now() });
   fs.writeFileSync(CIDS_FILE, JSON.stringify(cids, null, 2));
-  console.log("Stored CID:", cid);
   res.json({ success: true });
+});
+
+app.get('/listings', async (req, res) => {
+  let cids = [];
+  try {
+    if (fs.existsSync(CIDS_FILE)) {
+      cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
+    }
+  } catch (err) {
+    return res.status(500).json({ error: 'Could not read cids.json' });
+  }
+  const unique = [];
+  const seen = new Set();
+  for (const entry of cids) {
+    if (!seen.has(entry.cid)) {
+      seen.add(entry.cid);
+      unique.push(entry);
+    }
+  }
+  res.json({ listings: unique });
 });
 
 app.get("/x402", async (req, res) => {
