@@ -120,7 +120,33 @@ app.get("/api/:id", async (req, res) => {
     }
   });
 });
+app.get("/api/:id/health", async (req, res) => {
+  const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
+  const cid = searchParams.get("id");
 
+  const api = await getJsonFromIpfs(cid);
+  if (!cid) {
+    return res.status(400).json({ error: "Missing CID" });
+  }
+  if (!api) {
+    return res.status(404).json({ error: "Cannot find API" });
+  }
+  fetch(api.endpoint+'/health').then(response => {
+    if (response.ok) {
+      res.send({
+        report: {
+          status: "online",
+        },
+      });
+    } else {
+      res.send({
+        report: {
+          status: "offline",
+        },
+      });
+    }
+  })
+});
 app.listen(4021, () => {
   console.log(`Server listening at http://localhost:4021`);
 });
