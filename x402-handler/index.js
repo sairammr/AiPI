@@ -10,6 +10,8 @@ app.use(express.json());
 import fs from 'fs';
 import path from 'path';
 
+import { getJsonFromIpfs } from './lib/ipfs';
+
 const CIDS_FILE = path.join(process.cwd(), 'cids.json');
 
 app.post('/store-listing', (req, res) => {
@@ -50,14 +52,14 @@ app.get('/listings', async (req, res) => {
   res.json({ listings: unique });
 });
 
-app.get("/x402", async (req, res) => {
+app.get("/test-api", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
 
   const dynamicMiddleware = paymentMiddleware(
     receiver,
     {
-      "GET /x402": {
-        price: `$${price}`,
+      "GET /test-api": {
+        price: `$0.01`,
         network: "base-sepolia",
       },
     },
@@ -70,9 +72,52 @@ app.get("/x402", async (req, res) => {
     res.send({
       report: {
         status: "success",
-        charged: `$${price}`,
+        charged: `$0.01`,
       },
     });
+  });
+});
+app.get("/api/:id", async (req, res) => {
+  const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
+  const cid = searchParams.get("id");
+  const dataParam = searchParams.get("data");
+
+  const api = await getJsonFromIpfs(cid);
+  if (!cid) {
+    return res.status(400).json({ error: "Missing CID" });
+  }
+  if (!api) {
+    return res.status(404).json({ error: "Cannot find API" });
+  }
+  const dynamicMiddleware = paymentMiddleware(
+    receiver,
+    {
+      "GET /api/:id": {
+        price: `$${api.price}`,
+        network: "base-sepolia",
+      },
+    },
+    {
+      url: "https://x402.org/facilitator",
+    }
+  );
+
+  dynamicMiddleware(req, res, async () => {
+    if (dataParam) {
+      fetch(api.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(JSON.parse(dataParam)),
+      }).then(response => {
+        res.send(response);
+      })
+    } else {
+      fetch(api.endpoint).then(response => {
+        res.send(response);
+      })
+    }
   });
 });
 
