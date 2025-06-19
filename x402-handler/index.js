@@ -93,10 +93,10 @@ app.get("/api/:id", async (req, res) => {
     return res.status(404).json({ error: "Cannot find API" });
   }
   const dynamicMiddleware = paymentMiddleware(
-    receiver,
+    api.fundReceivingAddress,
     {
       "GET /api/:id": {
-        price: `$${api.price}`,
+        price: `$${api.costPerRequest}`,
         network: "base-sepolia",
       },
     },

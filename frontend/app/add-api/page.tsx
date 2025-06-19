@@ -27,6 +27,7 @@ export default function AddApiPage() {
     documentation: "",
     tags: "",
     cid: "",
+    fundReceivingAddress: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -99,7 +100,8 @@ export default function AddApiPage() {
     { number: 1, title: "API Details", description: "Basic information about your API" },
     { number: 2, title: "Integration", description: "Set up access code and verification" },
     { number: 3, title: "Verification", description: "Verify your API endpoint" },
-    { number: 4, title: "Review", description: "Review and submit your API" },
+    { number: 4, title: "Fund Receiving Address", description: "Enter your fund receiving address" },
+    { number: 5, title: "Review", description: "Review and submit your API" },
   ]
 
   return (
@@ -403,6 +405,23 @@ app.post('/verify', (req, res) => {
 
               {currentStep === 4 && (
                 <div className="space-y-6">
+                  <h3 className="font-black text-2xl mb-6">Fund Receiving Address</h3>
+                  <div>
+                    <Label htmlFor="fundReceivingAddress" className="font-bold text-lg">Fund Receiving Address</Label>
+                    <Input
+                      id="fundReceivingAddress"
+                      type="text"
+                      placeholder="Enter your fund receiving address"
+                      value={formData.fundReceivingAddress}
+                      onChange={e => setFormData(prev => ({ ...prev, fundReceivingAddress: e.target.value }))}
+                      className="mt-2 border-2 border-black"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {currentStep === 5 && (
+                <div className="space-y-6">
                   <h3 className="font-black text-2xl mb-6">Review Your API</h3>
 
                   <div className="grid md:grid-cols-2 gap-6">
@@ -445,6 +464,11 @@ app.post('/verify', (req, res) => {
                     </div>
                   </div>
 
+                  <div>
+                    <Label className="font-bold text-lg">Fund Receiving Address</Label>
+                    <p className="font-semibold text-gray-600 font-mono">{formData.fundReceivingAddress}</p>
+                  </div>
+
                   <div className="bg-green-50 border-2 border-black p-4">
                     <div className="flex items-center space-x-2">
                       <CheckCircle className="h-5 w-5 text-green-600" />
@@ -465,7 +489,7 @@ app.post('/verify', (req, res) => {
                   Previous
                 </Button>
 
-                {currentStep < 4 ? (
+                {currentStep < 5 ? (
                   <Button
                     onClick={() => setCurrentStep(currentStep + 1)}
                     disabled={currentStep === 3 && !isVerified}
