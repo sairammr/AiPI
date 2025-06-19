@@ -26,23 +26,50 @@ export default function AddApiPage() {
     costPerRequest: "",
     documentation: "",
     tags: "",
+    cid: "",
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const generateAccessCode = () => {
-    const code = `aipi_${Math.random().toString(36).substring(2, 15)}_${Date.now().toString(36)}`
-    setAccessCode(code)
+  const [copyStatus, setCopyStatus] = useState("");
+
+  const handleGenerateAccessCode = async () => {
+  setAccessCode("");
+  setCopyStatus("");
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4021"}/keygen`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ cid: formData.cid || formData.endpoint || "" }),
+    });
+    const data = await res.json();
+    if (res.ok && data.apiKey) {
+      setAccessCode(data.apiKey);
+      if (data.uuid) {
+        setFormData(prev => ({ ...prev, id: data.uuid }));
+      }
+    } else {
+      setAccessCode("Error generating code");
+    }
+  } catch (err) {
+    setAccessCode("Error generating code");
   }
+};
+
+  const handleCopyCode = async () => {
+    if (!accessCode) return;
+    await navigator.clipboard.writeText(accessCode);
+    setCopyStatus("Copied!");
+    setTimeout(() => setCopyStatus(""), 1500);
+  };
 
   const handleVerify = async () => {
-    setIsVerifying(true)
-    // Simulate API verification
+    setIsVerifying(true);
     setTimeout(() => {
-      setIsVerifying(false)
-      setIsVerified(true)
-    }, 2000)
-  }
+      setIsVerifying(false);
+      setIsVerified(true);
+    }, 2000);
+  };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -259,11 +286,21 @@ export default function AddApiPage() {
                           Click the button below to generate your unique access code:
                         </p>
                         <Button
-                          onClick={generateAccessCode}
+                          onClick={handleGenerateAccessCode}
                           className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold"
                         >
                           Generate Access Code
                         </Button>
+
+                        {accessCode && (
+                          <div className="flex items-center space-x-2 mt-2">
+                            <code className="font-mono bg-white border border-black px-2 py-1">{accessCode}</code>
+                            <Button onClick={handleCopyCode} size="icon" variant="outline">
+                              <Copy className="w-4 h-4" />
+                            </Button>
+                            {copyStatus && <span className="text-green-600 font-semibold">{copyStatus}</span>}
+                          </div>
+                        )}
 
                         {accessCode && (
                           <div className="mt-4">

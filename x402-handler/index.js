@@ -9,8 +9,10 @@ app.use(express.json());
 
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
-import { getCidAndApiKey } from './lib/keygen.js';
+import { generateApiKeyFromUuid } from './lib/keygen.js';
+const UUID_SEQ_FILE = path.join(process.cwd(), 'uuid-seq.json');
 
 const CIDS_FILE = path.join(process.cwd(), 'cids.json');
 
@@ -27,13 +29,7 @@ app.post('/store-listing', async (req, res) => {
       cids = [];
     }
   }
-  let apiKey;
-  try {
-    ({ apiKey } = await getCidAndApiKey(cid));
-  } catch (err) {
-    return res.status(500).json({ error: 'Failed to generate API key' });
-  }
-  cids.push({ cid, apiKey, timestamp: Date.now() });
+  cids.push({ cid, timestamp: Date.now() });
   fs.writeFileSync(CIDS_FILE, JSON.stringify(cids, null, 2));
   res.json({ success: true });
 });
@@ -52,18 +48,18 @@ app.get('/listings', async (req, res) => {
   for (const entry of cids) {
     if (!seen.has(entry.cid)) {
       seen.add(entry.cid);
-      const { apiKey, ...safeEntry } = entry;
-      unique.push(safeEntry);
+      unique.push(entry);
+
     }
   }
-  res.json({ listings: unique , apiKey});
+  res.json({ listings: unique });
 });
 
 app.get("/test-api", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
 
   const dynamicMiddleware = paymentMiddleware(
-    receiver,
+    "0x38b09fF7F662D02402397653766ed795F9FD8f25",
     {
       "GET /test-api": {
         price: `$0.01`,
@@ -108,22 +104,13 @@ app.get("/api/:id", async (req, res) => {
       url: "https://x402.org/facilitator",
     }
   );
-
   let apiKey;
-  try {
-    if (fs.existsSync(CIDS_FILE)) {
-      const cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
-      const found = cids.find(entry => entry.cid === cid);
-      if (found && found.apiKey) {
-        apiKey = found.apiKey;
-      }
-    }
-  } catch (err) {
-  }
-
+  generateApiKeyFromUuid(api.id).then(data => {
+    apiKey = data.apiKey;
+  });
   dynamicMiddleware(req, res, async () => {
     const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers["x-api-key"] = apiKey;
+    if (apiKey) headers["x-aipi-access-code"] = apiKey;
     if (dataParam) {
       fetch(api.endpoint, {
         method: "POST",
@@ -139,10 +126,10 @@ app.get("/api/:id", async (req, res) => {
     }
   });
 });
-app.get("/api/:id/health", async (req, res) => {
+app.get("/api/health/:id", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
   const cid = searchParams.get("id");
-
+  console.log(cid);
   const api = await getJsonFromIpfs(cid);
   if (!cid) {
     return res.status(400).json({ error: "Missing CID" });
@@ -151,22 +138,14 @@ app.get("/api/:id/health", async (req, res) => {
     return res.status(404).json({ error: "Cannot find API" });
   }
   let apiKey;
-  try {
-    if (fs.existsSync(CIDS_FILE)) {
-      const cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
-      const found = cids.find(entry => entry.cid === cid);
-      if (found && found.apiKey) {
-        apiKey = found.apiKey;
-      }
-    }
-  } catch (err) {
-  }
-  const headers = apiKey ? { "x-api-key": apiKey } : undefined;
-  fetch(api.endpoint + '/health', { headers }).then(response => {
-    if (response.ok) {
-      res.send({
-        report: {
-          status: "online",
+  generateApiKeyFromUuid(api.id).then(data => {
+    apiKey = data.apiKey;
+    const headers = apiKey ? { "x-api-key": apiKey } : undefined;
+    fetch(api.endpoint + '/health', { headers }).then(response => {
+      if (response.ok) {
+        res.send({
+          report: {
+            status: "online",
         },
       });
     } else {
@@ -176,8 +155,34 @@ app.get("/api/:id/health", async (req, res) => {
         },
       });
     }
-  })
+  })  
+})
 });
+
+app.post('/keygen', async (req, res) => {
+  const { cid } = req.body;
+  if (!cid) {
+    return res.status(400).json({ error: 'CID is required' });
+  }
+  let seq = 1;
+  if (fs.existsSync(UUID_SEQ_FILE)) {
+    try {
+      seq = JSON.parse(fs.readFileSync(UUID_SEQ_FILE, 'utf8'));
+      if (typeof seq !== 'number' || !Number.isFinite(seq)) seq = 1;
+    } catch {
+      seq = 1;
+    }
+  }
+  const randomStr = Math.random().toString(36).slice(2, 10) + crypto.randomBytes(4).toString('hex');
+  const uuid = `aipi-${seq}-${randomStr}`;
+  fs.writeFileSync(UUID_SEQ_FILE, String(seq + 1));
+  let apiKey;
+  generateApiKeyFromUuid(uuid).then((data) => {
+    apiKey = data.apiKey;
+    res.json({ apiKey, uuid });
+  });
+});
+
 app.listen(4021, () => {
   console.log(`Server listening at http://localhost:4021`);
 });

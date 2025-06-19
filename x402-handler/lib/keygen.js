@@ -1,10 +1,11 @@
 const crypto = require('crypto');
 
-async function getCidAndApiKey(cid) {
-  const secret = crypto.randomBytes(32);
-  const hmac = crypto.createHmac('sha512', secret).update(cid).digest('base64url');
-  const apiKey = hmac.length >= 64 ? hmac.slice(0, 64) : (hmac + crypto.randomBytes(64 - hmac.length).toString('base64url')).slice(0, 64);
-  return { apiKey };
+function generateApiKeyFromUuid(uuid) {
+  const PRIVATE_KEY = process.env.PRIVATE_KEY;
+  if (!PRIVATE_KEY) {
+    throw new Error('PRIVATE_KEY not set in environment');
+  }
+  return crypto.createHash('sha256').update(uuid + PRIVATE_KEY).digest('hex');
 }
 
-module.exports = { getCidAndApiKey };
+module.exports = { generateApiKeyFromUuid };

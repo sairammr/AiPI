@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+import fetch from 'node-fetch';
 
 async function getJsonFromIpfs(cid) {
   if (!cid) throw new Error('CID is required');
@@ -12,4 +12,4 @@ async function getJsonFromIpfs(cid) {
   }
 }
 
-module.exports = { getJsonFromIpfs };
+export { getJsonFromIpfs };
