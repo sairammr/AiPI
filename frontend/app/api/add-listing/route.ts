@@ -43,7 +43,7 @@ export const POST = async (req: Request) => {
       await fetch(`${process.env.NEXT_PUBLIC_API_URL}/store-listing`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cid: data.IpfsHash }),
+        body: JSON.stringify({ cid: data.IpfsHash, ownerId: body.fundReceivingAddress }),
       });
     } catch (err) {
     }

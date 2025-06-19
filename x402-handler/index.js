@@ -7,52 +7,33 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-import fs from 'fs';
-import path from 'path';
 import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
 import { generateApiKeyFromUuid } from './lib/keygen.js';
-const UUID_SEQ_FILE = path.join(process.cwd(), 'uuid-seq.json');
+import { listApis, storeApi, getApiByCid, logUsage } from './lib/mongodb.js';
 
-const CIDS_FILE = path.join(process.cwd(), 'cids.json');
+const UUID_SEQ_FILE = process.cwd() + '/uuid-seq.json';
 
 app.post('/store-listing', async (req, res) => {
-  const { cid } = req.body;
+  const { cid, ownerId } = req.body;
   if (!cid) {
     return res.status(400).json({ error: 'CID is required' });
   }
-  let cids = [];
-  if (fs.existsSync(CIDS_FILE)) {
-    try {
-      cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
-    } catch {
-      cids = [];
-    }
+  try {
+    const insertedId = await storeApi({ cid, ownerId });
+    res.json({ success: true, id: insertedId });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to store API' });
   }
-  cids.push({ cid, timestamp: Date.now() });
-  fs.writeFileSync(CIDS_FILE, JSON.stringify(cids, null, 2));
-  res.json({ success: true });
 });
 
 app.get('/listings', async (req, res) => {
-  let cids = [];
   try {
-    if (fs.existsSync(CIDS_FILE)) {
-      cids = JSON.parse(fs.readFileSync(CIDS_FILE, 'utf8'));
-    }
+    const apis = await listApis();
+    res.json({ listings: apis });
   } catch (err) {
-    return res.status(500).json({ error: 'Could not read cids.json' });
+    res.status(500).json({ error: 'Could not read APIs from database' });
   }
-  const unique = [];
-  const seen = new Set();
-  for (const entry of cids) {
-    if (!seen.has(entry.cid)) {
-      seen.add(entry.cid);
-      unique.push(entry);
-
-    }
-  }
-  res.json({ listings: unique });
 });
 
 app.get("/test-api", async (req, res) => {
@@ -80,7 +61,7 @@ app.get("/test-api", async (req, res) => {
     });
   });
 });
-app.get("/api/:id", async (req, res) => {
+app.get("/aipi/:id", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
   const cid = searchParams.get("id");
   const dataParam = searchParams.get("data");
@@ -111,21 +92,37 @@ app.get("/api/:id", async (req, res) => {
   dynamicMiddleware(req, res, async () => {
     const headers = { "Content-Type": "application/json" };
     if (apiKey) headers["x-aipi-access-code"] = apiKey;
-    if (dataParam) {
-      fetch(api.endpoint, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(JSON.parse(dataParam)),
-      }).then(response => {
-        res.send(response);
-      })
-    } else {
-      fetch(api.endpoint, { headers: apiKey ? { "x-api-key": apiKey } : undefined }).then(response => {
-        res.send(response);
-      })
+    let responseStatus = 200;
+    let responseTimeMs = 0;
+    let start = Date.now();
+    try {
+      let response;
+      if (dataParam) {
+        response = await fetch(api.endpoint, {
+          method: "POST",
+          headers,
+          body: JSON.stringify(JSON.parse(dataParam)),
+        });
+      } else {
+        response = await fetch(api.endpoint, { headers: apiKey ? { "x-api-key": apiKey } : undefined });
+      }
+      responseStatus = response.status;
+      responseTimeMs = Date.now() - start;
+      res.send(await response.json());
+      if (api._id) {
+        await logUsage({ apiId: api._id.$oid || api._id, responseStatus, responseTimeMs });
+      }
+    } catch (err) {
+      responseStatus = 500;
+      responseTimeMs = Date.now() - start;
+      res.status(500).json({ error: 'API call failed' });
+      if (api._id) {
+        await logUsage({ apiId: api._id.$oid || api._id, responseStatus, responseTimeMs });
+      }
     }
   });
 });
+
 app.get("/api/health/:id", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
   const cid = searchParams.get("id");
