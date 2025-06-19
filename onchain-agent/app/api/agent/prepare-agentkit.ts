@@ -6,6 +6,7 @@ import {
   erc20ActionProvider,
   pythActionProvider,
   walletActionProvider,
+  CdpV2WalletProvider,
   WalletProvider,
   wethActionProvider,
 } from "@coinbase/agentkit";
@@ -104,10 +105,6 @@ export async function prepareAgentkitAndWalletProvider(): Promise<{
         marketplaceActionProvider(),
       ],
     });
-
-    // Save wallet data
-    const exportedWallet = await walletProvider.exportWallet();
-    fs.writeFileSync(WALLET_DATA_FILE, JSON.stringify(exportedWallet));
 
     return { agentkit, walletProvider };
   } catch (error) {
