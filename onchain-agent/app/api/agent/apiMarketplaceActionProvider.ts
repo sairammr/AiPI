@@ -133,10 +133,12 @@ class MarketplaceActionProvider extends ActionProvider<WalletProvider> {
           this.serverAccount
         );  
 
-        const response = await api.get(`/aipi/${args.apiCid}?id=${args.apiCid}`);
-        console.log(response);
-        const paymentResponse = decodeXPaymentResponse(response?.headers["x-payment-response"]);
+        const response = await api.get(`/aipi/?id=${args.apiCid}`);
+        console.log(response.data);
+        console.log(response.headers);
+        const paymentResponse = decodeXPaymentResponse(response.headers["x-payment-response"]);
         console.log(paymentResponse);
+        console.log(response.headers["x-payment-response"]);
         
         return JSON.stringify({
           success: true,

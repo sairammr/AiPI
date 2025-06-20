@@ -62,7 +62,7 @@ app.get("/test-api", async (req, res) => {
     });
   });
 });
-app.get("/aipi/:id", async (req, res) => {
+app.get("/aipi/", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
   const cid = searchParams.get("id");
   const dataParam = searchParams.get("data");
@@ -77,7 +77,7 @@ app.get("/aipi/:id", async (req, res) => {
   const dynamicMiddleware = paymentMiddleware(
     process.env.SERVER_FUND_ADDRESS,
     {
-      "GET /api/:id": {
+      "GET /aipi/": {
         price: `$${api.costPerRequest}`,
         network: "base-sepolia",
       },
