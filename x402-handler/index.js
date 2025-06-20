@@ -7,6 +7,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+import fs from 'fs';
 import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
 import { generateApiKeyFromUuid } from './lib/keygen.js';
@@ -40,7 +41,7 @@ app.get("/test-api", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
 
   const dynamicMiddleware = paymentMiddleware(
-    "0x38b09fF7F662D02402397653766ed795F9FD8f25",
+    process.env.SERVER_FUND_ADDRESS,
     {
       "GET /test-api": {
         price: `$0.01`,
@@ -74,7 +75,7 @@ app.get("/aipi/:id", async (req, res) => {
     return res.status(404).json({ error: "Cannot find API" });
   }
   const dynamicMiddleware = paymentMiddleware(
-    api.fundReceivingAddress,
+    process.env.SERVER_FUND_ADDRESS,
     {
       "GET /api/:id": {
         price: `$${api.costPerRequest}`,
@@ -85,10 +86,7 @@ app.get("/aipi/:id", async (req, res) => {
       url: "https://x402.org/facilitator",
     }
   );
-  let apiKey;
-  generateApiKeyFromUuid(api.id).then(data => {
-    apiKey = data.apiKey;
-  });
+  let apiKey = generateApiKeyFromUuid(api.id);
   dynamicMiddleware(req, res, async () => {
     const headers = { "Content-Type": "application/json" };
     if (apiKey) headers["x-aipi-access-code"] = apiKey;
@@ -134,15 +132,13 @@ app.get("/api/health/:id", async (req, res) => {
   if (!api) {
     return res.status(404).json({ error: "Cannot find API" });
   }
-  let apiKey;
-  generateApiKeyFromUuid(api.id).then(data => {
-    apiKey = data.apiKey;
-    const headers = apiKey ? { "x-api-key": apiKey } : undefined;
-    fetch(api.endpoint + '/health', { headers }).then(response => {
-      if (response.ok) {
-        res.send({
-          report: {
-            status: "online",
+  let apiKey = generateApiKeyFromUuid(api.id);
+  const headers = apiKey ? { "x-api-key": apiKey } : undefined;
+  fetch(api.endpoint + '/health', { headers }).then(response => {
+    if (response.ok) {
+      res.send({
+        report: {
+          status: "online",
         },
       });
     } else {
@@ -152,8 +148,7 @@ app.get("/api/health/:id", async (req, res) => {
         },
       });
     }
-  })  
-})
+  });  
 });
 
 app.post('/keygen', async (req, res) => {
@@ -173,11 +168,8 @@ app.post('/keygen', async (req, res) => {
   const randomStr = Math.random().toString(36).slice(2, 10) + crypto.randomBytes(4).toString('hex');
   const uuid = `aipi-${seq}-${randomStr}`;
   fs.writeFileSync(UUID_SEQ_FILE, String(seq + 1));
-  let apiKey;
-  generateApiKeyFromUuid(uuid).then((data) => {
-    apiKey = data.apiKey;
-    res.json({ apiKey, uuid });
-  });
+  let apiKey = generateApiKeyFromUuid(uuid);
+  res.json({ apiKey, uuid });
 });
 
 app.listen(4021, () => {
