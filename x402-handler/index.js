@@ -11,7 +11,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
 import { generateApiKeyFromUuid } from './lib/keygen.js';
-import { listApis, storeApi, getApiByCid, logUsage } from './lib/mongodb.js';
+import { listApis, storeApi, logUsage, getUsageLogsByApiId } from './lib/mongodb.js';
 
 const UUID_SEQ_FILE = process.cwd() + '/uuid-seq.json';
 
@@ -170,6 +170,24 @@ app.post('/keygen', async (req, res) => {
   fs.writeFileSync(UUID_SEQ_FILE, String(seq + 1));
   let apiKey = generateApiKeyFromUuid(uuid);
   res.json({ apiKey, uuid });
+});
+
+app.get('/usage/:apiId', async (req, res) => {
+  const { apiId } = req.params;
+  if (!apiId) {
+    return res.status(400).json({ error: 'apiId is required' });
+  }
+  try {
+    const logs = await getUsageLogsByApiId(apiId, 1000);
+    const formatted = logs.map(log => ({
+      timestamp: log.timestamp,
+      responseStatus: log.responseStatus,
+      responseTimeMs: log.responseTimeMs
+    }));
+    res.json({ apiId, usage: formatted ,usageCount: logs.length});
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch usage logs' });
+  }
 });
 
 app.listen(4021, () => {

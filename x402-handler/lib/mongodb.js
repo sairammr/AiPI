@@ -100,3 +100,22 @@ export async function logUsage({ apiId, responseStatus, responseTimeMs }) {
   const json = await res.json();
   return json.insertedId;
 }
+
+// Fetch usage logs for a given API ID, sorted by timestamp ascending
+export async function getUsageLogsByApiId(apiId, limit = 1000) {
+  const res = await fetch(`${ENDPOINT}/action/find`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      collection: USAGE_LOGS_COLLECTION,
+      database: DB,
+      dataSource: dataSource,
+      filter: { apiId: { '$oid': apiId } },
+      sort: { timestamp: 1 },
+      limit,
+    }),
+  });
+  const json = await res.json();
+  return json.documents || [];
+}
+
