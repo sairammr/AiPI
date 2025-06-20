@@ -38,29 +38,13 @@ app.get('/listings', async (req, res) => {
 });
 
 app.get("/test-api", async (req, res) => {
-  const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
-
-  const dynamicMiddleware = paymentMiddleware(
-    process.env.SERVER_FUND_ADDRESS,
-    {
-      "GET /test-api": {
-        price: `$0.01`,
-        network: "base-sepolia",
-      },
-    },
-    {
-      url: "https://x402.org/facilitator",
-    }
-  );
-
-  dynamicMiddleware(req, res, () => {
-    res.send({
-      report: {
-        status: "success",
-        charged: `$0.01`,
-      },
-    });
-  });
+  console.log("logger")
+ res.send({
+   report: {
+     status: "success",
+     data:"hello world"
+   },
+ });
 });
 app.get("/aipi/", async (req, res) => {
   const { searchParams } = new URL(req.url, `http://${req.headers.host}`);
