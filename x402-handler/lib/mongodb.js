@@ -81,7 +81,7 @@ export async function getApiById(_id) {
   return json.document;
 }
 
-export async function logUsage({ apiId, responseStatus, responseTimeMs }) {
+export async function logUsage(apiId, responseStatus, responseTimeMs) {
   const res = await fetch(`${ENDPOINT}/action/insertOne`, {
     method: 'POST',
     headers: getHeaders(),
@@ -90,7 +90,7 @@ export async function logUsage({ apiId, responseStatus, responseTimeMs }) {
       database: DB,
       dataSource: dataSource,
       document: {
-        apiId: { '$oid': apiId },
+        apiId: apiId,
         timestamp: new Date(),
         responseStatus,
         responseTimeMs,
@@ -110,9 +110,8 @@ export async function getUsageLogsByApiId(apiId, limit = 1000) {
       collection: USAGE_LOGS_COLLECTION,
       database: DB,
       dataSource: dataSource,
-      filter: { apiId: { '$oid': apiId } },
+      filter: { apiId: apiId },
       sort: { timestamp: 1 },
-      limit,
     }),
   });
   const json = await res.json();

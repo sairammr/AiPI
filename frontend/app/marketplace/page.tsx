@@ -146,10 +146,15 @@ function ApiCard({ api }: { api: any }) {
         )) : <span className="text-xs text-gray-400">No tags</span>}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <Link href={`/api/${api.cid}`}>
           <Button className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold">
             View Details
+          </Button>
+        </Link>
+        <Link href={`/analytics?apiId=${encodeURIComponent(api.cid)}`}>
+          <Button className="bg-blue-600 text-white border-2 border-black hover:bg-white hover:text-blue-600 font-bold">
+            Stats
           </Button>
         </Link>
       </div>

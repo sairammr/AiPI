@@ -190,6 +190,24 @@ app.get('/usage/:apiId', async (req, res) => {
   }
 });
 
+// Function to add mock usage stats for a given API
+async function addMockUsageStats(apiId, count = 50) {
+  for (let i = 0; i < count; i++) {
+    const responseStatus = [200, 201, 400, 401, 403, 404, 500][Math.floor(Math.random() * 7)];
+    const responseTimeMs = Math.floor(Math.random() * 800) + 100; // 100-900ms
+    await logUsage(apiId, responseStatus, responseTimeMs);
+  }
+  return count;
+}
+
+// Endpoint to trigger mock usage stat insertion
+app.get('/mock-usage/:apiId', async (req, res) => {
+  const { apiId } = req.params;
+  if (!apiId) return res.status(400).json({ error: 'apiId is required' });
+  const inserted = await addMockUsageStats(apiId);
+  res.json({ message: `Inserted ${inserted} mock usage logs for ${apiId}` });
+});
+
 app.listen(4021, () => {
   console.log(`Server listening at http://localhost:4021`);
 });
