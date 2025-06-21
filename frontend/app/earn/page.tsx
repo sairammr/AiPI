@@ -9,7 +9,7 @@ export default function Earn() {
   const [apiList, setApiList] = useState<any[]>([]);
   const [selectedApi, setSelectedApi] = useState<any | null>(null);
   const [claiming, setClaiming] = useState(false);
-
+  const [apiId, setApiId] = useState<string | null>(null);
   async function connectWallet() {
     if (!window.ethereum) {
       alert("MetaMask is not installed");
@@ -35,16 +35,21 @@ export default function Earn() {
               // Fetch metadata from IPFS using cid
               const resp = await fetch(`https://gateway.pinata.cloud/ipfs/${api.cid}`);
               const meta = await resp.json();
-              return { ...api, ...meta };
+              // Attach _id as apiId for clarity
+              return { ...api, ...meta, apiId: api._id || api.apiId,cid: api.cid };
             } catch (e) {
-              return { ...api, name: api.cid, error: 'Failed to fetch metadata' };
+              return { ...api, name: api.cid, error: 'Failed to fetch metadata', apiId: api._id || api.apiId };
             }
           })
         );
         setApiList(apisWithMeta);
         setApiResponse(null);
+        // Always select first API after refresh, or null if none
+        if (apisWithMeta.length > 0) setSelectedApi(apisWithMeta[0]);
+        else setSelectedApi(null);
       } else {
         setApiList([]);
+        setSelectedApi(null);
         setApiResponse("No APIs found");
       }
     } catch (err) {
@@ -86,16 +91,16 @@ export default function Earn() {
             <label htmlFor="api-dropdown" style={{ fontWeight: 700, marginBottom: 8, display: 'block' }}>Select an API to claim earnings:</label>
             <select
               id="api-dropdown"
-              value={selectedApi ? selectedApi.cid : ''}
+              value={selectedApi ? selectedApi.apiId : ''}
               onChange={e => {
-                const found = apiList.find(api => api.cid === e.target.value);
-                setSelectedApi(found);
+                const found = apiList.find(api => String(api.apiId) === String(e.target.value));
+                setSelectedApi(found || null);
               }}
               style={{ padding: 8, fontSize: 16, borderRadius: 4, border: '2px solid #000', width: '100%', marginBottom: 16 }}
             >
               <option value="" disabled>Select API</option>
               {apiList.map(api => (
-                <option key={api.cid} value={api.cid}>
+                <option key={api.apiId} value={api.apiId}>
                   {api.name || api.cid} (Earnings: {api.earning ?? 0})
                 </option>
               ))}
@@ -116,6 +121,7 @@ export default function Earn() {
                 if (!selectedApi) return;
                 setClaiming(true);
                 try {
+                  console.log(selectedApi);
                   const resp = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/claim`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

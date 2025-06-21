@@ -192,6 +192,64 @@ app.get('/mock-usage/:apiId', async (req, res) => {
   res.json({ message: `Inserted ${inserted} mock usage logs for ${apiId}` });
 });
 
+app.post('/claim', async (req, res) => {
+  const { apiId } = req.body;
+  if (!apiId) {
+    return res.status(400).json({ error: 'apiId is required' });
+  }
+  try {
+    // Dynamically import ethers
+    const { ethers } = await import('ethers');
+    const { getApiByCid } = await import('./lib/mongodb.js');
+    // Get API by CID
+    const api = await getApiByCid(apiId);
+    if (!api) return res.status(404).json({ error: 'API not found' });
+    const earning = api.earning || 0;
+    const to = api.ownerId;
+    if (!ethers.isAddress(to)) return res.status(400).json({ error: 'Invalid owner address' });
+    if (earning <= 0) return res.status(400).json({ error: 'No earnings to claim' });
+
+    // USDC transfer
+    const provider = new ethers.JsonRpcProvider(process.env.RPC_URL);
+    const wallet = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+    const usdcAddress = process.env.USDC_CONTRACT;
+    const usdcAbi = [
+      "function transfer(address to, uint256 amount) returns (bool)",
+      "function decimals() view returns (uint8)"
+    ];
+    const usdc = new ethers.Contract(usdcAddress, usdcAbi, wallet);
+    const decimals = await usdc.decimals();
+    const amount = ethers.parseUnits(earning.toString(), decimals);
+    const tx = await usdc.transfer("0x4D75e9c0c8b26A042e94000eFD9317Ce9d9C0d8f", amount);
+    await tx.wait();
+
+    // Reset earnings to 0
+    const fetch = (await import('node-fetch')).default;
+    const ENDPOINT = process.env.MONGODB_ENDPOINT;
+    const DB = process.env.MONGODB_DATABASE_NAME;
+    const dataSource = process.env.MONGODB_DATA_SOURCE;
+    const APIS_COLLECTION = 'apis';
+    await fetch(`${ENDPOINT}/action/updateOne`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Request-Headers': '*',
+        'api-key': process.env.MONGODB_API_KEY,
+      },
+      body: JSON.stringify({
+        collection: APIS_COLLECTION,
+        database: DB,
+        dataSource: dataSource,
+        filter: { cid: apiId },
+        update: { "$set": { earning: 0 } },
+      }),
+    });
+    res.json({ success: true, txHash: tx.hash, amount: earning, to });
+  } catch (err) {
+    res.status(500).json({ error: err.message || 'Failed to claim earnings' });
+  }
+});
+
 app.post('/earnings', async (req, res) => {
   const { address } = req.body;
   if (!address) {
