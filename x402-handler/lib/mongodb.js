@@ -9,12 +9,28 @@ const dataSource=process.env.MONGODB_DATA_SOURCE;
 const APIS_COLLECTION = 'apis';
 const USAGE_LOGS_COLLECTION = 'usage_logs';
 
+
 function getHeaders() {
   return {
     'Content-Type': 'application/json',
     'Access-Control-Request-Headers': '*',
     'api-key': API_KEY,
   };
+}
+export async function getApiIdsByOwner(address) {
+  const res = await fetch(`${ENDPOINT}/action/find`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      collection: APIS_COLLECTION,
+      database: DB,
+      dataSource: dataSource,
+      filter: { ownerId: address.toLowerCase().trim().toString() },
+      projection: { cid: 1, ownerId: 1, earning: 1 }
+    })
+  });
+  const data = await res.json();
+  return (data.documents || []).map(doc => doc);
 }
 
 export async function listApis() {
@@ -42,7 +58,7 @@ export async function storeApi({ cid, ownerId, earning = 0 }) {
       dataSource: dataSource,
       document: {
         cid,
-        ownerId,
+        ownerId: ownerId.toLowerCase().trim().toString(),
         earning,
         createdAt: new Date(),
       },

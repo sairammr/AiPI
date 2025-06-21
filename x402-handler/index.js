@@ -11,7 +11,7 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
 import { generateApiKeyFromUuid } from './lib/keygen.js';
-import { listApis, storeApi, logUsage, getUsageLogsByApiId, incrementCostPerRequest } from './lib/mongodb.js';
+import { listApis, storeApi, logUsage, getUsageLogsByApiId, getApiIdsByOwner } from './lib/mongodb.js';
 
 const UUID_SEQ_FILE = process.cwd() + '/uuid-seq.json';
 
@@ -190,6 +190,19 @@ app.get('/mock-usage/:apiId', async (req, res) => {
   if (!apiId) return res.status(400).json({ error: 'apiId is required' });
   const inserted = await addMockUsageStats(apiId);
   res.json({ message: `Inserted ${inserted} mock usage logs for ${apiId}` });
+});
+
+app.post('/earnings', async (req, res) => {
+  const { address } = req.body;
+  if (!address) {
+    return res.status(400).json({ error: 'address is required' });
+  }
+  try {
+    const apiIds = await getApiIdsByOwner(address);
+    res.json({ apiIds });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to fetch earnings' });
+  }
 });
 
 app.listen(4021, () => {
