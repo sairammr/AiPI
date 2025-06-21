@@ -11,17 +11,17 @@ import fs from 'fs';
 import crypto from 'crypto';
 import { getJsonFromIpfs } from './lib/ipfs.js';
 import { generateApiKeyFromUuid } from './lib/keygen.js';
-import { listApis, storeApi, logUsage, getUsageLogsByApiId } from './lib/mongodb.js';
+import { listApis, storeApi, logUsage, getUsageLogsByApiId, incrementCostPerRequest } from './lib/mongodb.js';
 
 const UUID_SEQ_FILE = process.cwd() + '/uuid-seq.json';
 
 app.post('/store-listing', async (req, res) => {
-  const { cid, ownerId } = req.body;
+  const { cid, ownerId, earning = 0 } = req.body;
   if (!cid) {
     return res.status(400).json({ error: 'CID is required' });
   }
   try {
-    const insertedId = await storeApi({ cid, ownerId });
+    const insertedId = await storeApi({ cid, ownerId, earning });
     res.json({ success: true, id: insertedId });
   } catch (err) {
     res.status(500).json({ error: 'Failed to store API' });

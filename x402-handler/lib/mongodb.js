@@ -32,7 +32,7 @@ export async function listApis() {
   return json.documents || [];
 }
 
-export async function storeApi({ cid, ownerId }) {
+export async function storeApi({ cid, ownerId, earning = 0 }) {
   const res = await fetch(`${ENDPOINT}/action/insertOne`, {
     method: 'POST',
     headers: getHeaders(),
@@ -43,6 +43,7 @@ export async function storeApi({ cid, ownerId }) {
       document: {
         cid,
         ownerId,
+        earning,
         createdAt: new Date(),
       },
     }),
@@ -97,8 +98,26 @@ export async function logUsage(apiId, responseStatus, responseTimeMs) {
       },
     }),
   });
+  incrementCostPerRequest(apiId);
   const json = await res.json();
   return json.insertedId;
+}
+
+// Increment the costPerRequest for a given API by 1
+export async function incrementCostPerRequest(apiId) {
+  const res = await fetch(`${ENDPOINT}/action/updateOne`, {
+    method: 'POST',
+    headers: getHeaders(),
+    body: JSON.stringify({
+      collection: APIS_COLLECTION,
+      database: DB,
+      dataSource: dataSource,
+      filter: { _id: { '$oid': apiId } },
+      update: { "$inc": { costPerRequest: 1 } },
+    }),
+  });
+  const json = await res.json();
+  return json;
 }
 
 // Fetch usage logs for a given API ID, sorted by timestamp ascending
