@@ -2,5 +2,5 @@
 *node_modules
 /test-api
 *bun.lock
-*.env
+.env
 *package-lock.json

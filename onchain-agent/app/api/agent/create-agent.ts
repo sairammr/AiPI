@@ -3,6 +3,9 @@ import { getVercelAITools } from "@coinbase/agentkit-vercel-ai-sdk";
 import { prepareAgentkitAndWalletProvider } from "./prepare-agentkit";
 import axios from "axios";
 
+/**
+ * Interface defining the structure of an API listing in the marketplace
+ */
 interface ApiListing {
   id: string;
   name: string;
@@ -16,6 +19,10 @@ interface ApiListing {
 
 /**
  * Fetches available APIs from the marketplace with IPFS data
+ * This function retrieves the basic listing information and then fetches
+ * the complete API metadata from IPFS for each listing
+ * 
+ * @returns Promise<ApiListing[]> Array of API listings with complete metadata
  */
 async function fetchAvailableApis(): Promise<ApiListing[]> {
   try {
@@ -28,7 +35,7 @@ async function fetchAvailableApis(): Promise<ApiListing[]> {
       return [];
     }
 
-    // Fetch IPFS data for each listing
+    // Fetch IPFS data for each listing to get complete API metadata
     const apisWithIpfsData = await Promise.all(
       response.data.listings.map(async (item: { cid: string; timestamp: number }) => {
         try {
@@ -95,7 +102,9 @@ async function fetchAvailableApis(): Promise<ApiListing[]> {
  *    - Configure agent-specific parameters
  */
 
-// The agent
+/**
+ * Type definition for the AI agent configuration
+ */
 type Agent = {
   tools: ReturnType<typeof getVercelAITools>;
   system: string;
@@ -104,29 +113,38 @@ type Agent = {
   availableApis: ApiListing[];
 };
 
+// Global agent instance for singleton pattern
 let agent: Agent;
 
 /**
  * Initializes and returns an instance of the AI agent.
  * If an agent instance already exists, it returns the existing one.
+ * This function sets up the agent with marketplace API context and
+ * configures the system prompt for API call confirmations.
  *
- * @function getOrInitializeAgent
- * @returns {Promise<ReturnType<typeof createReactAgent>>} The initialized AI agent.
+ * @function createAgent
+ * @returns {Promise<Agent>} The initialized AI agent with marketplace context
  *
- * @description Handles agent setup
+ * @description Handles complete agent setup including:
+ * - LLM initialization
+ * - Marketplace API fetching
+ * - System prompt configuration
+ * - Tool integration
  *
- * @throws {Error} If the agent initialization fails.
+ * @throws {Error} If the agent initialization fails or required env vars are missing
  */
 export async function createAgent(): Promise<Agent> {
-  // If agent has already been initialized, return it
+  // If agent has already been initialized, return it (singleton pattern)
   if (agent) {
     return agent;
   }
 
+  // Validate required environment variables
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("I need an OPENAI_API_KEY in your .env file to power my intelligence.");
   }
 
+  // Initialize AgentKit and WalletProvider
   const { agentkit, walletProvider } = await prepareAgentkitAndWalletProvider();
 
   try {
@@ -145,27 +163,50 @@ export async function createAgent(): Promise<Agent> {
         ).join('\n')}`
       : "\n\nNo APIs currently available in the marketplace.";
 
-    // Initialize Agent
+    // Initialize Agent with faucet capability check
     const canUseFaucet = walletProvider.getNetwork().networkId == "base-sepolia";
     const faucetMessage = `If you ever need funds, you can request them from the faucet.`;
     const cantUseFaucetMessage = `If you need funds, you can provide your wallet details and request funds from the user.`;
     
+    /**
+     * System prompt configuration for the AI agent
+     * This defines the agent's behavior, capabilities, and interaction patterns
+     */
     const system = `
         You are an API marketplace agent that helps users access various API services through x402 payment integration.
         Your main purpose is to help users find and access API endpoints stored in the IPFS registry.
         
+        CRITICAL: API CALL CONFIRMATION PROTOCOL
+        Before making ANY API call, you MUST follow this double confirmation process:
+        1. First, identify the appropriate API and inform the user about:
+           - The specific API you plan to use
+           - The cost per request
+           - What data will be returned
+        2. Ask for explicit confirmation: "Should I proceed with this API call?"
+        3. Wait for user confirmation before proceeding
+        4. Only after user confirms, make the API call using the fetch-api-data tool
+        
+        RESPONSE FORMAT:
+        After successful API calls, ONLY return:
+        - The API response data
+        - The transaction hash from the payment
+        
+        Do NOT include any other information, explanations, or commentary in the final response.
+        
         When a user requests data or services, you will:
         1. Analyze their request and identify what type of API they need
         2. Search through the available APIs in your context to find the best match
-        3. Use the fetch-api-data tool with the appropriate API CID to make the request
-        4. Handle the response and any payment confirmations
+        3. Present the API details and cost to the user for confirmation
+        4. Wait for explicit user confirmation
+        5. Use the fetch-api-data tool with the appropriate API CID to make the request
+        6. Return only the API response and transaction hash
         
         IMPORTANT: You have access to the current marketplace APIs in your context. Use this information to:
         - Match user requests to available APIs
-        - Provide information about available services
+        - Provide information about available services and their costs
         - Suggest alternatives if the exact API isn't available
-        - Inform users about costs before making requests
         - Use the exact CID when calling the fetch-api-data tool
+        - Always confirm before making any API calls
         
         If the requested API is not found in your available APIs list, inform the user and suggest they add it to the marketplace.
         
@@ -174,15 +215,17 @@ export async function createAgent(): Promise<Agent> {
         
         I can help with:
         - Finding appropriate APIs in the marketplace
-        - Making authenticated API calls with x402 payment
+        - Making authenticated API calls with x402 payment (after confirmation)
         - Handling API responses and payment confirmations
         - Suggesting new APIs to be added to the marketplace
         - Providing information about available services and their costs
         ${apiListingsContext}
         `;
     
+    // Initialize tools from AgentKit
     const tools = getVercelAITools(agentkit);
 
+    // Create and return the agent instance
     agent = {
       tools,
       system,
