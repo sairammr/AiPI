@@ -19,6 +19,8 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist typography */
@@ -28,6 +30,8 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 2px;
   margin: 0;
   line-height: 1.2;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist buttons */
@@ -81,6 +85,8 @@ input, textarea {
   outline: none;
   box-shadow: 3px 3px 0px #000000;
   min-height: 60px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 input:focus, textarea:focus {
@@ -93,6 +99,8 @@ input::placeholder {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist containers */
@@ -103,6 +111,8 @@ input::placeholder {
   padding: 32px;
   margin: 20px;
   min-height: 600px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .brutalist-card {
@@ -111,6 +121,8 @@ input::placeholder {
   box-shadow: 6px 6px 0px #000000;
   padding: 24px;
   margin: 16px 0;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist header */
@@ -119,11 +131,11 @@ input::placeholder {
   background: #ffffff;
   padding: 32px 40px;
   font-weight: 900;
-
   letter-spacing: 3px;
   min-height: 30px;
   display: flex;
- 
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist footer */
@@ -138,6 +150,8 @@ input::placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Brutalist links */
@@ -149,6 +163,8 @@ a {
   transition: none;
   padding: 4px 8px;
   margin: 0 8px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 a:hover {
@@ -168,6 +184,8 @@ a:hover {
   max-width: 75%;
   margin-left: auto;
   position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .message-ai {
@@ -180,6 +198,8 @@ a:hover {
   max-width: 75%;
   margin-right: auto;
   position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Message sender labels */
@@ -224,6 +244,8 @@ a:hover {
   margin: 16px 0;
   align-self: flex-end;
   position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .thinking-indicator::before {
@@ -270,12 +292,16 @@ a:hover {
   text-align: center;
   margin: 32px auto;
   max-width: 500px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .welcome-card h3 {
   font-size: 24px;
   margin-bottom: 16px;
   letter-spacing: 3px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .welcome-card p {
@@ -283,6 +309,8 @@ a:hover {
   font-weight: 700;
   letter-spacing: 1px;
   text-transform: uppercase;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Input area styling */
@@ -291,6 +319,8 @@ a:hover {
   padding-top: 24px;
   margin-top: 24px;
   background: #ffffff;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Message container */
@@ -302,6 +332,8 @@ a:hover {
   flex-direction: column;
   gap: 8px;
   min-height: 400px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Responsive adjustments */
@@ -330,5 +362,534 @@ a:hover {
   input {
     padding: 12px;
     min-height: 50px;
+  }
+}
+
+/* API Response Styling */
+.api-response {
+  background: #ffffff;
+  color: #000000;
+  border: 3px solid #000000;
+  box-shadow: 6px 6px 0px #000000;
+  padding: 24px;
+  margin: 16px 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.api-response::before {
+  content: "API RESPONSE";
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* JSON Response Styling */
+.api-response-json {
+  background: #f8f8f8;
+  border: 2px solid #000000;
+  padding: 16px;
+  margin: 12px 0;
+  border-radius: 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* API Response Headers */
+.api-response-header {
+  background: #000000;
+  color: #ffffff;
+  padding: 12px 16px;
+  margin: -24px -24px 16px -24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  border-bottom: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* API Response Status */
+.api-status {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 8px;
+  font-weight: 900;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-status.success {
+  background: #000000;
+  color: #ffffff;
+}
+
+.api-status.error {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ff0000;
+}
+
+.api-status.pending {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffaa00;
+}
+
+/* API Response Data */
+.api-data {
+  background: #ffffff;
+  border: 2px solid #000000;
+  padding: 16px;
+  margin: 12px 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* API Response Metadata */
+.api-metadata {
+  background: #f0f0f0;
+  border: 2px solid #000000;
+  padding: 12px;
+  margin: 8px 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-metadata-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-metadata-item:last-child {
+  border-bottom: none;
+}
+
+.api-metadata-label {
+  font-weight: 900;
+  color: #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-metadata-value {
+  font-weight: 700;
+  color: #333333;
+  text-align: right;
+  max-width: 60%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Transaction Hash Styling */
+.transaction-hash {
+  background: #000000;
+  color: #ffffff;
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+}
+
+/* API Response Timestamp */
+.api-timestamp {
+  background: #ffffff;
+  color: #666666;
+  padding: 4px 8px;
+  margin: 8px 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+}
+
+/* API Response Error */
+.api-error {
+  background: #ffffff;
+  color: #ff0000;
+  border: 3px solid #ff0000;
+  padding: 16px;
+  margin: 12px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-error::before {
+  content: "ERROR";
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #ff0000;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 8px;
+  letter-spacing: 1px;
+}
+
+/* API Response Loading */
+.api-loading {
+  background: #ffffff;
+  color: #000000;
+  border: 3px solid #000000;
+  padding: 16px;
+  margin: 12px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.api-loading::before {
+  content: "PROCESSING";
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #ffffff;
+  color: #000000;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 8px;
+  letter-spacing: 1px;
+  border: 2px solid #000000;
+}
+
+/* Responsive API Response */
+@media (max-width: 768px) {
+  .api-response {
+    padding: 16px;
+    margin: 12px 0;
+    font-size: 12px;
+  }
+  
+  .api-response-json,
+  .api-data {
+    padding: 12px;
+    font-size: 11px;
+  }
+  
+  .api-metadata-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .api-metadata-value {
+    max-width: 100%;
+    text-align: left;
+  }
+  
+  .transaction-hash {
+    font-size: 10px;
+    padding: 6px 8px;
+  }
+}
+
+/* ReactMarkdown Component Styling */
+.markdown-link {
+  border-bottom: 2px solid #000000;
+  padding: 2px 4px;
+  font-weight: 700;
+  color: #000000;
+  text-decoration: none;
+  transition: none;
+}
+
+.markdown-link:hover {
+  background: #000000;
+  color: #ffffff;
+  padding: 4px 6px;
+}
+
+.markdown-paragraph {
+  margin: 0;
+  line-height: 1.6;
+  font-size: 14px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-code {
+  background-color: #f0f0f0;
+  padding: 4px 8px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  border: 2px solid #000000;
+  font-size: 12px;
+  font-weight: 700;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-pre {
+  background-color: #f0f0f0;
+  padding: 16px;
+  overflow: auto;
+  margin: 16px 0;
+  border: 3px solid #000000;
+  box-shadow: 4px 4px 0px #000000;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  max-width: 100%;
+}
+
+.markdown-h1 {
+  font-size: 20px;
+  margin: 16px 0 8px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-h2 {
+  font-size: 18px;
+  margin: 12px 0 6px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-h3 {
+  font-size: 16px;
+  margin: 10px 0 5px 0;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-ul {
+  margin: 8px 0;
+  padding-left: 20px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-ol {
+  margin: 8px 0;
+  padding-left: 20px;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-li {
+  margin: 4px 0;
+  line-height: 1.4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-blockquote {
+  border-left: 4px solid #000000;
+  padding-left: 16px;
+  margin: 16px 0;
+  font-style: italic;
+  background-color: #f8f8f8;
+  padding: 12px 16px;
+  border: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+/* Enhanced API Response Styling for Markdown */
+.markdown-api-response {
+  background: #ffffff;
+  color: #000000;
+  border: 3px solid #000000;
+  box-shadow: 6px 6px 0px #000000;
+  padding: 24px;
+  margin: 16px 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  white-space: pre-wrap;
+  position: relative;
+}
+
+.markdown-api-response::before {
+  content: "API RESPONSE";
+  position: absolute;
+  top: -12px;
+  left: 16px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.markdown-api-header {
+  background: #000000;
+  color: #ffffff;
+  padding: 12px 16px;
+  margin: -24px -24px 16px -24px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  border-bottom: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-api-status {
+  display: inline-block;
+  padding: 4px 8px;
+  margin: 0 8px;
+  font-weight: 900;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 2px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-api-status.success {
+  background: #000000;
+  color: #ffffff;
+}
+
+.markdown-api-status.error {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ff0000;
+}
+
+.markdown-api-status.pending {
+  background: #ffffff;
+  color: #000000;
+  border-color: #ffaa00;
+}
+
+.markdown-api-data {
+  background: #ffffff;
+  border: 2px solid #000000;
+  padding: 16px;
+  margin: 12px 0;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.markdown-api-timestamp {
+  background: #ffffff;
+  color: #666666;
+  padding: 4px 8px;
+  margin: 8px 0;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border: 1px solid #000000;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  display: inline-block;
+}
+
+/* Responsive Markdown Styling */
+@media (max-width: 768px) {
+  .markdown-pre {
+    padding: 12px;
+    font-size: 11px;
+  }
+  
+  .markdown-h1 {
+    font-size: 18px;
+  }
+  
+  .markdown-h2 {
+    font-size: 16px;
+  }
+  
+  .markdown-h3 {
+    font-size: 14px;
+  }
+  
+  .markdown-api-response {
+    padding: 16px;
+    font-size: 12px;
+  }
+  
+  .markdown-api-data {
+    padding: 12px;
+    font-size: 11px;
   }
 }

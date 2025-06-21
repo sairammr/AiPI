@@ -1,0 +1,18 @@
+{
+  "name": "aipi-agent-cli",
+  "version": "1.0.2",
+  "description": "A I P I - agent kit x402 starter template",
+  "main": "index.js",
+  "bin": {
+    "aipi-agent": "./index.js"
+  },
+  "keywords": ["aipi", "agent", "x402", "starter", "template"],
+  "author": "AiPI Team",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "ora": "^5.4.1",
+    "simple-git": "^3.22.0"
+  }
+} 
