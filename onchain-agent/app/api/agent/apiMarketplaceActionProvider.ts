@@ -1,4 +1,4 @@
-import { ActionProvider, AgentKit, CdpWalletActionProvider, cdpWalletActionProvider, CreateAction, Network, walletActionProvider, WalletProvider } from "@coinbase/agentkit";
+import { ActionProvider,  CreateAction, Network, WalletProvider } from "@coinbase/agentkit";
 import { z } from "zod";
 import { decodeXPaymentResponse } from "x402-axios";
 import { withPaymentInterceptor } from "x402-axios";
@@ -65,6 +65,7 @@ class MarketplaceActionProvider extends ActionProvider<WalletProvider> {
         name: "x402",
       });
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       this.serverAccount = toAccount<LocalAccount>(account as any);
     }
 
@@ -150,7 +151,7 @@ class MarketplaceActionProvider extends ActionProvider<WalletProvider> {
           method: "GET"
         });
 
-      } catch (error: any) {
+      } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
         console.error("API Error:", error.response?.data || error);
         
         // Handle specific error cases with appropriate error messages
@@ -185,6 +186,7 @@ class MarketplaceActionProvider extends ActionProvider<WalletProvider> {
      * @param network - The network to check support for
      * @returns boolean - Always returns true (supports all networks)
      */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     supportsNetwork = (network: Network) => true;
   }
 

@@ -145,7 +145,7 @@ export async function createAgent(): Promise<Agent> {
   }
 
   // Initialize AgentKit and WalletProvider
-  const { agentkit, walletProvider } = await prepareAgentkitAndWalletProvider();
+  const { agentkit } = await prepareAgentkitAndWalletProvider();
 
   try {
     // Initialize LLM: https://platform.openai.com/docs/models#gpt-4o
@@ -164,9 +164,7 @@ export async function createAgent(): Promise<Agent> {
       : "\n\nNo APIs currently available in the marketplace.";
 
     // Initialize Agent with faucet capability check
-    const canUseFaucet = walletProvider.getNetwork().networkId == "base-sepolia";
-    const faucetMessage = `If you ever need funds, you can request them from the faucet.`;
-    const cantUseFaucetMessage = `If you need funds, you can provide your wallet details and request funds from the user.`;
+  
     
     /**
      * System prompt configuration for the AI agent
