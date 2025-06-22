@@ -293,13 +293,17 @@ export default function ApiDetailPage({ params }: { params: Promise<{ id: string
                 <div>
                   <label className="font-bold text-sm mb-2 block">API Endpoint</label>
                   <div className="bg-gray-50 border-2 border-black p-3 font-mono text-sm flex items-center justify-between">
-                    <span className="truncate">{api.endpoint}</span>
-                    <Button
-                      size="sm"
-                      className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold ml-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
+                    <span className="truncate">https://aipi-marketplace.vercel.app?id={cid}</span>
+                      <Button
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            `https://aipi-marketplace.vercel.app?id=${cid}`
+                          )
+                        }}
+                        className="bg-black text-white border-2 border-black hover:bg-white hover:text-black font-bold ml-2"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                   </div>
                 </div>
 
