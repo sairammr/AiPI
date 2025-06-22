@@ -40,35 +40,45 @@ program
       process.exit(1);
     }
     
-    const spinner = ora('Cloning repository...').start();
+    const spinner = ora('Cloning onchain-agent directory...').start();
     
     try {
-      // Clone the repository
+      // Create temporary directory for sparse checkout
+      const tempDir = `${targetDir}-temp`;
       const git = simpleGit();
-      await git.clone('https://github.com/sairammr/AiPI.git', targetDir);
       
-      // Change to the onchain-agent directory
-      const agentDir = path.join(targetDir, 'onchain-agent');
-      if (!fs.existsSync(agentDir)) {
-        throw new Error('onchain-agent directory not found in repository');
-      }
+      // Clone with sparse checkout
+      await git.clone('https://github.com/sairammr/AiPI.git', tempDir, ['--no-checkout']);
+      
+      // Configure sparse checkout
+      process.chdir(tempDir);
+      execSync('git sparse-checkout init --cone', { stdio: 'inherit' });
+      execSync('git sparse-checkout set onchain-agent', { stdio: 'inherit' });
+      execSync('git checkout', { stdio: 'inherit' });
+      
+      // Move the onchain-agent directory to target location
+      process.chdir('..');
+      fs.renameSync(path.join(tempDir, 'onchain-agent'), targetDir);
+      
+      // Clean up temporary directory
+      fs.rmSync(tempDir, { recursive: true, force: true });
       
       spinner.text = 'Installing dependencies...';
       
       // Install dependencies
-      process.chdir(agentDir);
+      process.chdir(targetDir);
       execSync('npm install', { stdio: 'inherit' });
       
       spinner.succeed('Project created successfully!');
       
       console.log(chalk.green('\n✅ AiPI agent project is ready!'));
       console.log(chalk.cyan('\n📁 Next steps:'));
-      console.log(chalk.white(`   cd ${targetDir}/onchain-agent`));
+      console.log(chalk.white(`   cd ${targetDir}`));
       console.log(chalk.white('   cp .example.env .env.local'));
       console.log(chalk.white('   # Edit .env.local with your API keys'));
       console.log(chalk.white('   npm run dev'));
       
-      console.log(chalk.yellow('\n🔗 Documentation: https://github.com/your-username/AiPI'));
+      console.log(chalk.yellow('\n🔗 Documentation: https://github.com/sairammr/AiPI'));
       
     } catch (error) {
       spinner.fail('Failed to create project');

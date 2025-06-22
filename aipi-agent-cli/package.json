@@ -1,6 +1,6 @@
 {
   "name": "aipi-agent-cli",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "A I P I - agent kit x402 starter template",
   "main": "index.js",
   "bin": {
